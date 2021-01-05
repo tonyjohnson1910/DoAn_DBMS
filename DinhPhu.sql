@@ -1,6 +1,13 @@
 CREATE DATABASE dbms_final_proj
 GO
 
+-- USE master
+-- GO
+-- ALTER DATABASE dbms_final_proj SET SINGLE_USER WITH ROLLBACK IMMEDIATE
+-- GO
+-- DROP DATABASE dbms_final_proj
+-- GO
+
 USE dbms_final_proj
 GO
 
@@ -145,7 +152,7 @@ CREATE TABLE thanhtoanvexe(
 	thoigianthanhtoan DATETIME,
 	sotien MONEY NOT NULL,
 
-	FOREIGN KEY(bienso, ngaygiovaoben) REFERENCES dbo.vexe(bienso, ngaygiovaoben),
+	FOREIGN KEY(bienso) REFERENCES dbo.xe(bienso),
 	PRIMARY KEY(bienso, ngaygiovaoben, thoigianthanhtoan)
 )
 GO
