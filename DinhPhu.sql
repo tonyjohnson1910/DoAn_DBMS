@@ -187,6 +187,9 @@ GO
 -- Proc and func
 -- Nguyen Dinh Phu
 
+-- mỗi lần thợ đến chấm công thì chương trình sẽ truyền vào proc này userid của thợ đó
+-- lúc đó thời gian vào làm và tan làm của thợ sẽ được lấy là thời gian hiện tại của database server (do chưa có tan làm nên lấy tạm thời gian hiện tại)
+-- mỗi record của bangchamcong là 1 ngày công
 CREATE PROC proc_chamcong_vao
 @thoid INT
 AS
@@ -205,9 +208,11 @@ BEGIN
 END
 GO
 
-EXEC proc_chamcong_vao @thoid = 0
-GO
+-- EXEC proc_chamcong_vao @thoid = 0
+-- GO
 
+-- đến cuối ngày thợ đến kết thúc thời gian làm thì sẽ thay đổi thời gian tan làm thành thời điểm hiện tại (trước đó lấy tạm là bằng thời gian vào làm)
+-- truyền vào userid của thợ
 CREATE PROC proc_chamcong_ra
 @thoid INT
 AS
@@ -225,9 +230,13 @@ BEGIN
 END
 GO
 
-EXEC proc_chamcong_ra @thoid = 0
-GO
+-- EXEC proc_chamcong_ra @thoid = 0
+-- GO
 
+-- Tringger thực hiện thay đổi trên bangchamcong khi được update
+-- Mỗi khi bảng chấm công được update (do cuối ngày thợ đến kết thúc công việc và cập nhật thời gian tan làm)
+-- lúc này trigger giúp cập nhật số  giờ làm việc và lương của thợ trong bảng phiếu trả lương
+-- nếu là mùng 1 của tháng thì tạo record phiếu trả lương mới cho tháng đó
 CREATE TRIGGER trg_hthanh_ngaycong ON dbo.bangchamcong
 AFTER UPDATE
 AS
@@ -267,6 +276,7 @@ BEGIN
 END
 GO
 
+-- function truyền vào userid của thợ, lấy ra số tiền lương tháng hiện tại của thợ đó
 CREATE FUNCTION func_getLuong (@thoid INT)
 RETURNS DEC(5,2)
 AS
@@ -282,9 +292,10 @@ BEGIN
 END
 GO
 
-SELECT func_getLuong(0)
-GO
+-- SELECT func_getLuong(0)
+-- GO
 
+-- thêm 1 thợ mới vào database gồm các thông tin cần thiết như username, password, acctype (loại tài khoản hay còn gọi là chức vụ), họ, tên và avatar
 CREATE PROC proc_insTho
 @uname VARCHAR(20), @passwd VARCHAR(100), @acctype TINYINT, @fname NVARCHAR(50), @lname NVARCHAR(50), @img IMAGE
 AS
@@ -324,9 +335,10 @@ BEGIN
 END
 GO
 
-EXEC dbo.proc_insTho @uname = '', @passwd = '', @acctype = 0, @fname = N'', @lname = N'', @img = NULL
-GO
+-- EXEC dbo.proc_insTho @uname = '', @passwd = '', @acctype = 0, @fname = N'', @lname = N'', @img = NULL
+-- GO
 
+-- thay đổi avatar của thợ, truyền vào userid và avatar mới của thợ cần thay đổi avatar
 CREATE PROC proc_editThoImage
 @uid INT, @img IMAGE
 AS
@@ -337,9 +349,10 @@ BEGIN
 END
 GO
 
-EXEC dbo.proc_editThoImage @uid = 0, @img = NULL
-GO
+-- EXEC dbo.proc_editThoImage @uid = 0, @img = NULL
+-- GO
 
+-- thay đổi password của thợ, truyền vào userid của thợ cần đổi password và password mới
 CREATE PROC proc_changeThoPasswd
 @uid INT, @passwd VARCHAR(100)
 AS
@@ -350,9 +363,11 @@ BEGIN
 END
 GO
 
-EXEC dbo.proc_changeThoPasswd @uid = 0, @passwd = ''
-GO
+-- EXEC dbo.proc_changeThoPasswd @uid = 0, @passwd = ''
+-- GO
 
+-- Xóa thợ khỏi database gồm tho_infos và tho_accounts của thợ đó
+-- truyền vào userid của thợ cần xóa
 CREATE PROC proc_delTho
 @uid INT
 AS
@@ -364,6 +379,5 @@ BEGIN
 END
 GO
 
-EXEC dbo.proc_delTho @uid = 0 -- int
-GO
-1
+-- EXEC dbo.proc_delTho @uid = 0 -- int
+-- GO
