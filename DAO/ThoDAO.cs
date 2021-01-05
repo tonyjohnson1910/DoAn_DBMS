@@ -1,4 +1,5 @@
-﻿using System;
+﻿using System.Dynamic;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
@@ -104,7 +105,7 @@ namespace DoAnDBMS.DAO
             try
             {
                 DataTable tblC = new DataTable();
-                
+
                 tblC = dbProvider.ExecuteQuery("SELECT COUNT(*) FROM dbo.tho_accounts WHERE uname = '" + thoAcc.uname + "' AND upasswd = '" + thoAcc.upasswd + "'");
                 kt = (Convert.ToInt32(tblC.Rows[0][0]) > 0) ? true : false;
             } catch (Exception)
@@ -114,6 +115,24 @@ namespace DoAnDBMS.DAO
             }
 
             return kt;
+        }
+
+        public int getUidByUname(string username)
+        {
+            int userid = -1;
+
+            try
+            {
+                DataTable tblC = new DataTable();
+
+                tblC = dbProvider.ExecuteQuery("SELECT userid FROM tho_accounts WHERE uname = '" + username + "'");
+                userid = Convert.ToInt32(tblC.Rows[0][0]);
+            } catch (Exception)
+            {
+                throw;
+            }
+
+            return userid;
         }
     }
 }
