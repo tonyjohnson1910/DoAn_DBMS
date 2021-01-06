@@ -1,12 +1,14 @@
 CREATE DATABASE dbms_final_proj
 GO
 
+-- drop database
 -- USE master
 -- GO
 -- ALTER DATABASE dbms_final_proj SET SINGLE_USER WITH ROLLBACK IMMEDIATE
 -- GO
 -- DROP DATABASE dbms_final_proj
 -- GO
+-- /drop database
 
 USE dbms_final_proj
 GO
@@ -47,25 +49,27 @@ CREATE TABLE admin_accounts(
 )
 GO
 
-CREATE TABLE tho_infos(
-	userid INT,
-	fname NVARCHAR(50) NOT NULL,
-	lname NVARCHAR(50) NOT NULL,
-	hinhanh IMAGE NOT NULL,
-
-	PRIMARY KEY(userid)
-)
-GO
-
 CREATE TABLE tho_accounts(
 	userid INT IDENTITY(1,1),
 	uname VARCHAR(20) UNIQUE NOT NULL,
 	upasswd VARCHAR(100) NOT NULL,
 	acctype TINYINT NOT NULL,	-- 1: giuxe | 2: chamsocxe
 
-	FOREIGN KEY(userid) REFERENCES dbo.tho_infos(userid),
 	PRIMARY KEY(userid)
 )
+GO
+
+
+CREATE TABLE tho_infos(
+	userid INT,
+	fname NVARCHAR(50) NOT NULL,
+	lname NVARCHAR(50) NOT NULL,
+	hinhanh IMAGE NULL,
+
+	FOREIGN KEY(userid) REFERENCES dbo.tho_accounts(userid),
+	PRIMARY KEY(userid)
+)
+GO
 
 CREATE TABLE khachhang(
 	cid VARCHAR(20),	-- cmnd
@@ -170,7 +174,7 @@ CREATE TABLE thanhtoancsx(
 GO
 
 CREATE TABLE bangchamcong(
-	tho_id INT REFERENCES dbo.tho_infos(userid),
+	tho_id INT REFERENCES dbo.tho_accounts(userid),
 	thoigianvaolam DATETIME,
 	thoigiantanlam DATETIME,
 
@@ -179,7 +183,7 @@ CREATE TABLE bangchamcong(
 GO
 
 CREATE TABLE phieutraluong(
-	tho_id INT REFERENCES dbo.tho_infos(userid),
+	tho_id INT REFERENCES dbo.tho_accounts(userid),
 	thang DATE,	-- thang/nam de tinh luong
 	sogiolamviec DEC(5,2) NOT NULL,
 	tienluong MONEY NOT NULL,
@@ -208,7 +212,7 @@ BEGIN
         thoigiantanlam
     )
     VALUES
-    (   0,         -- tho_id - int
+    (   @thoid,         -- tho_id - int
         GETDATE(), -- thoigianvaolam - datetime
         GETDATE()  -- thoigiantanlam - datetime
         )
@@ -258,7 +262,12 @@ BEGIN
 	DECLARE @sogio DEC(5,2);
 	SET @sogio = DATEPART(HOUR,@tgra) - DATEPART(HOUR,@tgvao);
 
-	IF @currentDate = 1
+	DECLARE @phieutrlExist INT;
+	SELECT @phieutrlExist = COUNT(*)
+	FROM dbo.phieutraluong
+	WHERE tho_id = @thoid;
+
+	IF @currentDate = 1 OR @phieutrlExist = 0
 	BEGIN
 	    INSERT dbo.phieutraluong
 	    (
@@ -299,7 +308,7 @@ BEGIN
 END
 GO
 
--- SELECT func_getLuong(0)
+-- SELECT func_getLuong(1)
 -- GO
 
 -- thêm 1 thợ mới vào database gồm các thông tin cần thiết như username, password, acctype (loại tài khoản hay còn gọi là chức vụ), họ, tên và avatar
@@ -307,7 +316,6 @@ CREATE PROC proc_insTho
 @uname VARCHAR(20), @passwd VARCHAR(100), @acctype TINYINT, @fname NVARCHAR(50), @lname NVARCHAR(50), @img IMAGE
 AS
 BEGIN
-	BEGIN TRAN;
     INSERT dbo.tho_accounts
     (
         uname,
@@ -338,7 +346,6 @@ BEGIN
 	    @lname, -- lname - nvarchar(50)
 	    @img -- hinhanh - image
 	    );
-	COMMIT TRAN;
 END
 GO
 
@@ -386,5 +393,5 @@ BEGIN
 END
 GO
 
--- EXEC dbo.proc_delTho @uid = 0 -- int
+-- EXEC dbo.proc_delTho @uid = 2 -- int
 -- GO
